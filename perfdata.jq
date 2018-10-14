@@ -20,7 +20,7 @@ else
 		end
 	end
 end
-)]) |
+), 100]) |
 (map(.[3]) | max),
 ["OK", "WARNING", "CRITICAL"][map(.[3]) | max] + "| " +
 (to_entries | map([.key] + (.value | map(tostring)) | join(";")) | join(" "))
