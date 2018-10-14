@@ -1,0 +1,35 @@
+#!/bin/sh -eu
+
+if test $# -ne 1; then
+    echo Usage: $0 BALANCE_CONFIG_JSON >&2
+    echo >&2
+    echo Reads standard input and outputs Icinga perfdata line >&2
+    exit 3
+fi
+
+own="`dirname $0`"
+tmp=`mktemp`
+
+jq -c  '.items, .item_limits, .ratio_limits' <"$1" | {
+    # Read JSON file to vars
+    read -r items
+    read -r item_limits
+    read -r ratio_limits
+
+    # Split input and output perfdata line
+    cat "$own/split_lines.jq" - "$own/perfdata.jq" >$tmp <<EOF
+    	| group_by(.)
+	| ( $items | map({key:., value:0})) + map({key:.[0], value: length})
+	| from_entries
+	| map_values($item_limits + {value:.})
+	+ {ratio: ($ratio_limits + {value: (map(.) | min / add * length)})}
+	|
+EOF
+}
+
+jq -Rsf $tmp | {
+    read ret
+    cat
+    rm $tmp
+    exit $ret
+}
