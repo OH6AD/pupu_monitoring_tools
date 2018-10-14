@@ -13,28 +13,17 @@ tmp=`mktemp`
 cat "$own/split_lines.jq" >>$tmp
 
 # Produce limits and put data in
-cat <<EOF >>$tmp
-    | group_by(.)
-    | ( \$conf[0].items | map({key:., value:0})) + map({key:.[0], value: length})
-    | from_entries
-    | map_values(\$conf[0].item_limits + {value:.})
-    + { ratio: (\$conf[0].ratio_limits + {max: 1, value: (map(.) | min / add * length)})}
-    |
-EOF
+echo '|' >>$tmp
+cat "$own/balance_fill.jq" >>$tmp
+echo '|' >>$tmp
 
 # Check limits
 cat "$own/inject_state.jq" >>$tmp
 
+echo '|' >>$tmp
 # Add msg and exit values based on checked limits
-cat <<EOF >>$tmp
-    | { msg: ( "connections: " + (del(.ratio) | map(.value) | add | tostring)
-             + ", ratio: " + (.ratio.value*100+0.5 | floor/100 | tostring)
-             )
-      , data: .
-      , exit: map(.state) | max
-      }
-    |
-EOF
+cat "$own/msg_and_exit.jq" >>$tmp
+echo '|' >>$tmp
 
 # Produce Icinga perfdata lines
 cat "$own/perfdata.jq" >>$tmp 
