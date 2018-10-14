@@ -27,7 +27,7 @@ jq -c  '.items, .item_limits, .ratio_limits' <"$1" | {
 EOF
 }
 
-jq -Rsf $tmp | {
+jq -Rrsf $tmp | {
     read ret
     cat
     rm $tmp
