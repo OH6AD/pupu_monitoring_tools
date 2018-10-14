@@ -10,22 +10,41 @@ fi
 own="`dirname $0`"
 tmp=`mktemp`
 
+cat "$own/split_lines.jq" >>$tmp
+
 jq -c  '.items, .item_limits, .ratio_limits' <"$1" | {
     # Read JSON file to vars
     read -r items
     read -r item_limits
     read -r ratio_limits
 
-    # Split input and output perfdata line
-    cat "$own/split_lines.jq" - "$own/perfdata.jq" >$tmp <<EOF
+    # Produce limits and put data in
+    cat <<EOF >>$tmp
     	| group_by(.)
 	| ( $items | map({key:., value:0})) + map({key:.[0], value: length})
 	| from_entries
 	| map_values($item_limits + {value:.})
-	+ {ratio: ($ratio_limits + {max: 1, value: (map(.) | min / add * length)})}
+	+ { ratio: ($ratio_limits + {max: 1, value: (map(.) | min / add * length)})}
 	|
 EOF
 }
+
+# Check limits
+cat "$own/inject_state.jq" >>$tmp
+
+# Add msg and exit values based on checked limits
+cat <<EOF >>$tmp
+    | { msg: ( "connections: " + (del(.ratio) | map(.value) | add | tostring)
+             + ", ratio: " + (.ratio.value*100+0.5 | floor/100 | tostring)
+             )
+      , data: .
+      , exit: map(.state) | max
+      }
+    |
+EOF
+
+# Produce Icinga perfdata lines
+cat "$own/perfdata.jq" >>$tmp 
 
 jq -Rrsf $tmp | {
     read ret
