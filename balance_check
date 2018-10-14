@@ -22,7 +22,7 @@ jq -c  '.items, .item_limits, .ratio_limits' <"$1" | {
 	| ( $items | map({key:., value:0})) + map({key:.[0], value: length})
 	| from_entries
 	| map_values($item_limits + {value:.})
-	+ {ratio: ($ratio_limits + {value: (map(.) | min / add * length)})}
+	+ {ratio: ($ratio_limits + {max: 1, value: (map(.) | min / add * length)})}
 	|
 EOF
 }
