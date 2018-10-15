@@ -14,19 +14,7 @@ cat "$own/split_lines.jq" >>$tmp
 cat "$own/icinga.jq" >>$tmp 
 
 # Produce limits and put data in
-cat "$own/balance_fill.jq" >>$tmp
-echo '| fill_icinga_state | ' >>$tmp
-
-# Check limits
-
-# Add msg and exit values based on checked limits
-cat "$own/msg_and_exit.jq" >>$tmp
-echo '| to_perfdata' >>$tmp
-
-# Produce Icinga perfdata lines
-
-#echo $tmp
-#exit 0
+cat "$own/balance_check.jq" >>$tmp
 
 jq -Rrsf $tmp --slurpfile conf "$1" | {
     read ret

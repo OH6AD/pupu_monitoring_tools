@@ -1,7 +1,7 @@
-def to_perfdata:
-    .exit,
-    ["OK", "WARNING", "CRITICAL"][.exit] +": " + .msg + "|" +
-    ( .data | to_entries | map( .key + "=" + (
+def to_perfdata(exit; msg):
+    exit,
+    ["OK", "WARNING", "CRITICAL"][exit] +": " + msg + "|" +
+    ( to_entries | map( .key + "=" + (
 	.value | [
 	    .value,
 	    .warn,
