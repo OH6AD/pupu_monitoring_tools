@@ -11,22 +11,22 @@ own="`dirname $0`"
 tmp=`mktemp`
 
 cat "$own/split_lines.jq" >>$tmp
+cat "$own/icinga.jq" >>$tmp 
 
 # Produce limits and put data in
-echo '|' >>$tmp
 cat "$own/balance_fill.jq" >>$tmp
-echo '|' >>$tmp
+echo '| fill_icinga_state | ' >>$tmp
 
 # Check limits
-cat "$own/inject_state.jq" >>$tmp
 
-echo '|' >>$tmp
 # Add msg and exit values based on checked limits
 cat "$own/msg_and_exit.jq" >>$tmp
-echo '|' >>$tmp
+echo '| to_perfdata' >>$tmp
 
 # Produce Icinga perfdata lines
-cat "$own/perfdata.jq" >>$tmp 
+
+#echo $tmp
+#exit 0
 
 jq -Rrsf $tmp --slurpfile conf "$1" | {
     read ret
