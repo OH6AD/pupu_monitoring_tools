@@ -8,17 +8,9 @@ if test $# -ne 1; then
 fi
 
 own="`dirname $0`"
-tmp=`mktemp`
 
-cat "$own/split_lines.jq" >>$tmp
-cat "$own/icinga.jq" >>$tmp 
-
-# Produce limits and put data in
-cat "$own/balance_check.jq" >>$tmp
-
-jq -Rrsf $tmp --slurpfile conf "$1" | {
+jq -Rrsf "$own/balance_check.jq" --slurpfile conf "$1" -L "$own" | {
     read ret
     cat
-    rm $tmp
     exit $ret
 }
