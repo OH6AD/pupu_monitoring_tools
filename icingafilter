@@ -1,0 +1,16 @@
+#!/bin/sh -eu
+
+if test $# -ne 2; then
+    echo Usage: $0 SCRIPT CONFIG_JSON >&2
+    echo >&2
+    echo Uses given command to run standard input and outputs Icinga perfdata line >&2
+    exit 3
+fi
+
+own="`dirname $0`"
+
+jq -Rrsf "$own/$1.jq" --slurpfile conf "$2" -L "$own" | {
+    read ret
+    cat
+    exit $ret
+}
