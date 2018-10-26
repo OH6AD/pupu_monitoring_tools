@@ -14,7 +14,7 @@ def to_perfdata(exit; msg):
 
 # Inject success state
 def fill_icinga_state:
-    map_values(.+{state:(if .crit > .warn then
+    map_values(.state = (if .crit > .warn then
 	if .value > .crit then
 	    2
 	else
@@ -34,4 +34,4 @@ def fill_icinga_state:
 		0
 	    end
 	end
-    end)});
+    end));
