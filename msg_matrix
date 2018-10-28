@@ -1,0 +1,31 @@
+#!/bin/sh -eu
+#
+# Sends standard input to Matrix homeserver. Ugly, dirty, and
+# slow. Rewrite with python or PHP later.
+#
+# Required environment variables:
+#
+# type    m.text, m.notice, etc.
+# server  Server hostname, including protocol
+# room    Room ID (not name!)
+# token   Access token
+
+export type
+export room
+
+matrix () {
+    curl -X $1 --header 'Content-Type: application/json' \
+	 --header 'Accept: application/json' -d @- "$2/_matrix/client/r0/$3"
+}
+
+get_id () {
+    jq -nr '(env.room | @uri)' | {
+	read -r room_esc
+	matrix POST "$server" "join/$room_esc?access_token=$token" |
+	    jq -cr '(.room_id | @uri)'
+    }
+}
+    
+jq -sRc '{"body":.,"msgtype": env.type}' |
+    matrix PUT "$server" "rooms/`get_id`/send/m.room.message/`date +%s`?access_token=$token" |
+    jq -r .event_id
