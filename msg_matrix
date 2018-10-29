@@ -5,13 +5,20 @@
 #
 # Required environment variables:
 #
-# type    m.text, m.notice, etc.
-# server  Server hostname, including protocol
-# room    Room ID (not name!)
-# token   Access token
+# type      m.text, m.notice, etc.
+# server    Server hostname, including protocol
+# room      Room ID (not name!)
+# token     Access token
+#
+# Optional:
+#
+# link      Link to a page
+# linktext  Link text content
 
 export type
 export room
+export link
+export linktext
 
 matrix () {
     curl -X $1 --header 'Content-Type: application/json' \
@@ -26,6 +33,6 @@ get_id () {
     }
 }
     
-jq -sRc '{"body":.,"msgtype": env.type}' |
+jq -sRc '{body:.,msgtype: env.type, formatted_body: ((.|@html)+" <a href=\""+env.link+"\">"+env.linktext+"</a>"), format: "org.matrix.custom.html"}' |
     matrix PUT "$server" "rooms/`get_id`/send/m.room.message/`date +%s`?access_token=$token" |
     jq -r .event_id
