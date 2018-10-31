@@ -17,6 +17,7 @@ utils::lines
 	        }[.[1]]
        , name: .[2]
        , value: (.[6] | tonumber)
+       , unit: "s"
        , is_sane: (.[1] | inside("*+?"))
        }
      | { key: .name

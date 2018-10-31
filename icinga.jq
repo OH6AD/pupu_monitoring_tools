@@ -3,7 +3,7 @@ def to_perfdata(exit; msg):
     ["OK", "WARNING", "CRITICAL"][exit] +": " + msg + "|" +
     ( to_entries | map( .key + "=" + (
 	.value | [
-	    .value,
+	    (.value | tostring) + .unit,
 	    .warn,
 	    .crit,
 	    if .min then .min else 0 end,
