@@ -33,6 +33,6 @@ get_id () {
     }
 }
     
-jq -sRc '{body:.,msgtype: env.type, formatted_body: ((.|@html)+" <a href=\""+env.link+"\">"+env.linktext+"</a>"), format: "org.matrix.custom.html"}' |
+jq -sRc '{body:(. + " " + env.linktext + "" + env.notify),msgtype: env.type, formatted_body: ((.|@html)+" <a href=\""+env.link+"\">"+env.linktext+"</a>"+(env.notify | @html)), format: "org.matrix.custom.html"}' |
     matrix PUT "$server" "rooms/`get_id`/send/m.room.message/`date +%s`?access_token=$token" |
-    jq -r .event_id
+    jq -er .event_id
