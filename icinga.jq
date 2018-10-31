@@ -2,13 +2,14 @@ def to_perfdata(exit; msg):
     exit,
     ["OK", "WARNING", "CRITICAL"][exit] +": " + msg + "|" +
     ( to_entries | map( .key + "=" + (
-	.value | [
-	    (.value | tostring) + .unit,
-	    .warn,
-	    .crit,
-	    if .min then .min else 0 end,
-	    if .max then .max else empty end
-	] | map(tostring) | join(";")
+	.value | [(.value | tostring) + .unit] +
+	    if .warn then [
+		.warn,
+		.crit,
+		if .min then .min else 0 end,
+		if .max then .max else empty end
+	    ] else [] end
+	| map(tostring) | join(";")
     )) | join(" ")
     );
 
