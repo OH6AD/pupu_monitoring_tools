@@ -17,12 +17,11 @@ def convert(base):
     match(" ([0-9.]+)C ([0-9.]+)W ([0-9.]+)V ([0-9]+)%\\|(..)(..)(..)(..)(..)(..)(..)\\|$") |
     (.captures) |
     {
-    	bits: .[10].string | base91dec | convert(2) | reverse | map(.==1),
+	bits: .[10].string | base91dec | (convert(2) + [0,0,0,0,0,0,0,0])[:8] | reverse | map(.==1),
 	data: map(.string)
     }
 ) | [
-    .raw.__CURSOR,                                               # cursor
-    (.raw.__REALTIME_TIMESTAMP | tonumber / 1000000 | floor),    # ts
+    (.raw.__REALTIME_TIMESTAMP | tonumber / 1e6 | todateiso8601 ),  # ts
     (.data[0] | tonumber),                                       # temp_box
     (.data[1] | tonumber),                                       # power
     (.data[2] | tonumber),                                       # voltage
