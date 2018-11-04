@@ -61,7 +61,6 @@ def convert(base):
 ] | @csv),
 ({
     value: .temp_in,
-    unit: "°C",
     crit: 5,
     warn: 10
 } | icinga::service_simple("ahma";"temp_in")),
