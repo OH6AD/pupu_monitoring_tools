@@ -2,10 +2,12 @@
 #
 # TODO rewrite this shit with a proper programming language
 
+cd "`dirname \"$0\"`"
+
 stdbuf -oL journalctl -fu aprs-log -n 0 -o json |
-    jq --unbuffered -rf "`dirname $0`/aprs-ahma.jq" |
+    jq --unbuffered -rf "aprs-ahma.jq" |
     while read -r line; do
-	if test "${line#PROCESS}" = "$line"; then
+	if test "${line#[}" = "$line"; then
 	    # SQL
 	    echo "copy ahma from stdin (format csv);
 $line
