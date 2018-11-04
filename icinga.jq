@@ -16,13 +16,13 @@ def to_perfdata(exit; msg):
     to_perfdata_line(exit; msg) | exit, .;
 
 def to_service_check_result(host; service; exit; msg):
-    [
+    "[" + (now | floor | tostring) + "] " + ([
 	"PROCESS_SERVICE_CHECK_RESULT",
 	host,
 	service,
 	(exit | tostring),
 	to_perfdata_line(exit; msg)
-    ] | join(";");
+    ] | join(";"));
 
 def to_service_check_result_simple(host; service):
     . as $me |
