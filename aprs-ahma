@@ -1,9 +1,17 @@
 #!/bin/sh -eu
+#
+# TODO rewrite this shit with a proper programming language
 
 stdbuf -oL journalctl -fu aprs-log -n 0 -o json |
-	jq --unbuffered -rf "`dirname $0`/aprs-ahma.jq" |
-	while read -r line; do
-		echo "copy ahma from stdin (format csv);
+    jq --unbuffered -rf "`dirname $0`/aprs-ahma.jq" |
+    while read -r line; do
+	if test "${line#PROCESS}" = "$line"; then
+	    # SQL
+	    echo "copy ahma from stdin (format csv);
 $line
 \\."
-	done | psql hacklabjkl_sensor
+	else
+	    # Perfdata
+	    echo "$line" >/var/run/icinga2/cmd/icinga2.cmd
+	fi
+    done | psql hacklabjkl_sensor
