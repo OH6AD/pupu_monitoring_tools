@@ -26,7 +26,7 @@ def to_service_check_result(host; service; exit; msg):
 
 def to_service_check_result_simple(host; service):
     . as $me |
-    [{ key: service, value: . }] | from_entries | to_service_check_result(host; service; $me.state; ($me.value|tostring) + $me.unit);
+    [{ key: service, value: . }] | from_entries | to_service_check_result(host; service; $me.state; $me.msg // ($me.value|tostring) + $me.unit);
 
 # Inject success state
 def fill_icinga_state_simple:

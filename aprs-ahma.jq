@@ -1,4 +1,5 @@
 import "icinga" as icinga;
+import "utils" as utils;
 
 def base91dec:
     explode | map(.-33) | (.[0] * 91 + .[1]);
@@ -61,15 +62,17 @@ def convert(base):
 ] | @csv),
 ({
     value: .temp_in,
+    msg: (.temp_in | utils::round(1) + "°C"),
     crit: 5,
     warn: 10
 } | icinga::service_simple("ahma";"temp_in")),
 ({
-    value: (.free_blocks*4096),
+    value: (479948800-.free_blocks*4096),
+    msg: (.free_blocks*0.004096 + 0.5 | floor | tostring + "MB free"),
     unit: "B",
     max: 479948800,
-    crit: 20e6,
-    warn: 50e6
+    crit: (0.95*479948800),
+    warn: (0.90*479948800)
 } | icinga::service_simple("ahma";"disk")),
 ({
     value: .battery,
@@ -80,5 +83,6 @@ def convert(base):
 } | icinga::service_simple("ahma";"battery")),
 ({
     state: (if .grid then 0 else 1 end),
-    value: (if .grid then "Grid powered" else "Battery powered" end),
+    msg: (if .grid then "Grid powered" else "Battery powered" end),
+    value: (if .grid then 1 else 0 end),
 } | icinga::to_service_check_result_simple("ahma"; "grid"))
