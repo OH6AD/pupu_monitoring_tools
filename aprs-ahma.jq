@@ -15,6 +15,13 @@ def convert(base):
   else [stream] | reverse | .[1:]
   end;
 
+( .MESSAGE | match("# (aprsc .*)") | .captures[0].string |
+{
+    state: 0,
+    msg: .,
+    value: 0,
+} | icinga::to_service_check_result_simple("jonne"; "aprx")),
+(
 {raw: .} + (
     .MESSAGE |
     match(" ([0-9]+) ([0-9.]+)C ([0-9.]+)W ([0-9.]+)V ([0-9]+)%\\|(..)(..)(..)(..)(..)(..)(..)\\|$") |
@@ -86,3 +93,4 @@ def convert(base):
     msg: (if .grid then "Grid powered" else "Battery powered" end),
     value: (if .grid then 1 else 0 end),
 } | icinga::to_service_check_result_simple("ahma"; "grid"))
+)
