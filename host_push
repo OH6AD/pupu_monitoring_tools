@@ -1,0 +1,7 @@
+#!/bin/sh -eu
+#
+# SSH forced command for pushing service results from a predefined host.
+
+while read -r line; do
+    echo "[`date +%s`] $1;$line"
+done >/var/run/icinga2/cmd/icinga2.cmd
