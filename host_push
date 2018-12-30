@@ -2,6 +2,17 @@
 #
 # SSH forced command for pushing service results from a predefined host.
 
-while read -r line; do
-    echo "[`date +%s`] $1;$line"
-done >/var/run/icinga2/cmd/icinga2.cmd
+host="$1"
+
+say () {
+    echo "[`date +%s`] PROCESS_SERVICE_CHECK_RESULT;$host;$@" >/var/run/icinga2/cmd/icinga2.cmd
+}
+
+if test "${SSH_ORIGINAL_COMMAND+x}"; then
+    say "$SSH_ORIGINAL_COMMAND"
+else
+    while read -r line; do
+	say "$line"
+    done
+fi
+
