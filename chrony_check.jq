@@ -29,5 +29,5 @@ utils::lines
 | icinga::fill_icinga_state
 # Add exit value and message based on checked limits and produce perfdata
 | icinga::to_perfdata( map(.state, if .is_sane then 0 else 2 end) | max
-  		     ; map(.text) | join(";")
+		     ; map(.text) | join(";")
 		     )
