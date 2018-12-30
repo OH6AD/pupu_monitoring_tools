@@ -68,6 +68,11 @@ def convert(base):
     .free_blocks
 ] | @csv),
 ({
+    state: 0,
+    msg: "Connected",
+    value: 1
+} | icinga::to_service_check_result_simple("ahma"; "aprs")),
+({
     value: .temp_in,
     msg: (.temp_in | utils::round(1) + "°C"),
     crit: 5,
