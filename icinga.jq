@@ -13,7 +13,7 @@ def to_perfdata_line(exit; msg):
     );
 
 def to_perfdata(exit; msg):
-    to_perfdata_line(exit; msg) | exit, .;
+    exit, to_perfdata_line(exit; msg);
 
 def to_service_check_result(host; service; exit; msg):
     "[" + (now | floor | tostring) + "] " + ([
