@@ -1,16 +1,18 @@
 #!/bin/sh -eu
 
-if test $# -ne 2; then
-    echo Usage: $0 SCRIPT CONFIG_JSON >&2
+if test $# -ne 2 -a $# -ne 3; then
+    echo Usage: $0 SCRIPT CONFIG_JSON [JQ_ARGS] >&2
     echo >&2
     echo Uses given command to run standard input and outputs Icinga perfdata line >&2
     exit 3
 fi
 
+args=${3--Rrs}
+
 own="`dirname $0`"
 
-jq -Rrsf "$own/$1.jq" --slurpfile conf "$2" -L "$own" | {
+jq $args -f "$own/$1.jq" --slurpfile conf "$2" -L "$own" | {
     read ret
-    cat
+    head -n 1
     exit $ret
 }
