@@ -2,12 +2,25 @@
 
 stats () {
     sox -t "$1" - -n stat 2>&1 |
-	sourcename="${2-$1}" jq -sR 'split("\n") | map(match("^(.*):[[:space:]]*(.*)") | .captures | map(.string) | { key: (.[0] | sub("[[:space:]]+";" ")), value: (.[1] | try tonumber catch empty) }) | from_entries + { source: env.sourcename }'
+	jq -sRrf "`dirname $0`/stream_monitor.jq" | {
+	read ret
+	head -n 1
+	exit $ret
+    }
 }
 
 curl_head () {
     curl "$1" | head -c 65536
 }
 
-curl_head http://radio.instanssi.org:8000/fm.opus | opusdec --force-wav - - | stats wav opus
-curl_head http://radio.instanssi.org:8000/fm.mp3 | stats mp3
+case "$1" in
+    opus)
+	curl_head "$2" | opusdec --force-wav - - | stats wav
+	;;
+    mp3)
+	curl_head "$2" | stats mp3
+	;;
+    *)
+	echo "Invalid command" >&2
+	exit 3
+esac
