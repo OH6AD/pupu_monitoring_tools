@@ -1,8 +1,9 @@
 #!/bin/sh -eu
 
 stats () {
+    own="`dirname $0`"
     sox -t "$1" - -n stat 2>&1 |
-	jq -sRrf "`dirname $0`/stream_monitor.jq" | {
+	jq -sRrf "$own/stream_monitor.jq" -L "$own" | {
 	read ret
 	head -n 1
 	exit $ret
