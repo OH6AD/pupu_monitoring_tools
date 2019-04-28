@@ -1,0 +1,13 @@
+#!/bin/sh -eu
+
+stats () {
+    sox -t "$1" - -n stat 2>&1 |
+	sourcename="${2-$1}" jq -sR 'split("\n") | map(match("^(.*):[[:space:]]*(.*)") | .captures | map(.string) | { key: (.[0] | sub("[[:space:]]+";" ")), value: (.[1] | try tonumber catch empty) }) | from_entries + { source: env.sourcename }'
+}
+
+curl_head () {
+    curl "$1" | head -c 65536
+}
+
+curl_head http://radio.instanssi.org:8000/fm.opus | opusdec --force-wav - - | stats wav opus
+curl_head http://radio.instanssi.org:8000/fm.mp3 | stats mp3
