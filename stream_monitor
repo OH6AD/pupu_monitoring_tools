@@ -10,12 +10,12 @@ stats () {
 }
 
 curl_head () {
-    curl "$1" | head -c 65536
+    curl -s "$1" | head -c 65536
 }
 
 case "$1" in
     opus)
-	curl_head "$2" | opusdec --force-wav - - | stats wav
+	curl_head "$2" | opusdec --quiet --force-wav - - 2>/dev/null | stats wav
 	;;
     mp3)
 	curl_head "$2" | stats mp3
