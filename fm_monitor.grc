@@ -22,7 +22,7 @@
     </param>
     <param>
       <key>description</key>
-      <value>Outputs 192k samples/s, left channel Q right channel A</value>
+      <value>Outputs Icinga passive check compatible format about SNR and deviation</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -82,7 +82,7 @@
     </param>
     <param>
       <key>title</key>
-      <value>Analog QAM decoder (for FM monitoring)</value>
+      <value>Monitors FM broadcast SNR and deviation</value>
     </param>
     <param>
       <key>placement</key>
@@ -155,7 +155,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(840, 68)</value>
+      <value>(744, 52)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -182,7 +182,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(664, 68)</value>
+      <value>(568, 52)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -240,11 +240,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(664, 148)</value>
+      <value>(568, 132)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -287,11 +287,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(840, 148)</value>
+      <value>(736, 132)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -338,7 +338,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(664, 236)</value>
+      <value>(552, 220)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -385,7 +385,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(664, 332)</value>
+      <value>(552, 316)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -424,11 +424,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(952, 140)</value>
+      <value>(856, 124)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -483,7 +483,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(776, 228)</value>
+      <value>(672, 212)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -538,7 +538,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(776, 324)</value>
+      <value>(672, 308)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -601,7 +601,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(400, 212)</value>
+      <value>(304, 196)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -660,7 +660,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(400, 308)</value>
+      <value>(304, 292)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -850,6 +850,98 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
     </param>
     <param>
       <key>crit</key>
+      <value>0.1</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1040, 116)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>gr_icinga_dev</value>
+    </param>
+    <param>
+      <key>service</key>
+      <value>"Vappuradio deviation"</value>
+    </param>
+    <param>
+      <key>warn</key>
+      <value>0.3</value>
+    </param>
+  </block>
+  <block>
+    <key>epy_block</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_io_cache</key>
+      <value>('Icinga', 'blk', [('service', "''"), ('warn', '0'), ('crit', '1')], [('0', 'float', 1)], [], 'Embedded Python Block example - a simple multiply const', ['crit', 'service', 'warn'])</value>
+    </param>
+    <param>
+      <key>_source_code</key>
+      <value>"""
+Embedded Python Blocks:
+
+Each time this file is saved, GRC will instantiate the first class it finds
+to get ports and parameters of your block. The arguments to __init__  will
+be the parameters. All of them are required to have default values!
+"""
+
+import numpy as np
+from gnuradio import gr
+
+
+class blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block
+    """Embedded Python Block example - a simple multiply const"""
+
+    def __init__(self, service="", warn=0, crit=1):  # only default arguments here
+        """arguments to this function show up as parameters in GRC"""
+        gr.sync_block.__init__(
+            self,
+            name='Icinga',   # will show up in GRC
+            in_sig=[np.float32],
+            out_sig=[]
+        )
+        # if an attribute with the same name as a parameter is found,
+        # a callback is registered (properties work, too).
+        self.service = service
+        self.warn = warn
+        self.crit = crit
+
+    def work(self, input_items, output_items):
+        """Test limits based on ranges"""
+        status = 0
+        if self.crit &lt; self.warn:
+            if input_items[0] &lt; self.warn: status = 1
+            if input_items[0] &lt; self.crit: status = 2
+        else:
+            if input_items[0] &gt; self.warn: status = 1
+            if input_items[0] &gt; self.crit: status = 2
+        
+        if status == 0: text = "OK"
+        if status == 1: text = "WARNING"
+        if status == 2: text = "CRITICAL"
+        print("{};{};{}: {}".format(self.service,status,text,input_items[0][0]))
+        
+        return 1
+</value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>crit</key>
       <value>20</value>
     </param>
     <param>
@@ -858,7 +950,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1080, 436)</value>
+      <value>(1040, 284)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -866,7 +958,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
     </param>
     <param>
       <key>id</key>
-      <value>gr_icinga</value>
+      <value>gr_icinga_snr</value>
     </param>
     <param>
       <key>service</key>
@@ -924,7 +1016,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(328, 516)</value>
+      <value>(224, 516)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -971,7 +1063,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(328, 404)</value>
+      <value>(24, 524)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2353,7 +2445,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(400, 28)</value>
+      <value>(304, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2524,7 +2616,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(976, 304)</value>
+      <value>(872, 288)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2556,6 +2648,12 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
   <connection>
     <source_block_id>blocks_rms_xx_0_0_2_0_0</source_block_id>
     <sink_block_id>blocks_stream_to_vector_decimator_0_0_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>blocks_stream_to_vector_decimator_0</source_block_id>
+    <sink_block_id>gr_icinga_dev</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
@@ -2603,7 +2701,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
   </connection>
   <connection>
     <source_block_id>snr</source_block_id>
-    <sink_block_id>gr_icinga</sink_block_id>
+    <sink_block_id>gr_icinga_snr</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>

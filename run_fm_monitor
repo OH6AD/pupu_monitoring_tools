@@ -1,0 +1,6 @@
+#!/bin/sh -eu
+tmpdir=`mktemp -d`
+cd "`dirname $0`"
+grcc -d "$tmpdir" fm_monitor.grc
+"$tmpdir/fm_monitor.py" "$@"
+rm -r "$tmpdir"
