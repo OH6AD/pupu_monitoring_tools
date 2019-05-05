@@ -896,6 +896,76 @@
     </param>
   </block>
   <block>
+    <key>epy_block</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_io_cache</key>
+      <value>('Embedded Python Block', 'blk', [('example_param', '1.0')], [('0', 'complex', 1)], [('0', 'complex', 1)], 'Embedded Python Block example - a simple multiply const', ['example_param'])</value>
+    </param>
+    <param>
+      <key>_source_code</key>
+      <value>"""
+Embedded Python Blocks:
+
+Each time this file is saved, GRC will instantiate the first class it finds
+to get ports and parameters of your block. The arguments to __init__  will
+be the parameters. All of them are required to have default values!
+"""
+
+import numpy as np
+from gnuradio import gr
+
+
+class blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block
+    """Embedded Python Block example - a simple multiply const"""
+
+    def __init__(self, example_param=1.0):  # only default arguments here
+        """arguments to this function show up as parameters in GRC"""
+        gr.sync_block.__init__(
+            self,
+            name='Embedded Python Block',   # will show up in GRC
+            in_sig=[np.complex64],
+            out_sig=[np.complex64]
+        )
+        # if an attribute with the same name as a parameter is found,
+        # a callback is registered (properties work, too).
+        self.example_param = example_param
+
+    def work(self, input_items, output_items):
+        """example: multiply with constant"""
+        output_items[0][:] = input_items[0] * self.example_param
+        return len(output_items[0])
+</value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>example_param</key>
+      <value>1.0</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1000, 464)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>gr_icinga</value>
+    </param>
+  </block>
+  <block>
     <key>import</key>
     <param>
       <key>alias</key>
@@ -1065,87 +1135,6 @@
     <param>
       <key>value</key>
       <value>135000</value>
-    </param>
-  </block>
-  <block>
-    <key>epy_block</key>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_io_cache</key>
-      <value>('SNR decibels', 'blk', [('bw_ratio', '1.0')], [('0', 'float', 1), ('1', 'float', 1), ('2', 'float', 1)], [], 'Embedded Python Block example - a simple multiply const', [])</value>
-    </param>
-    <param>
-      <key>bw_ratio</key>
-      <value>noise_bw/deviation/2</value>
-    </param>
-    <param>
-      <key>_source_code</key>
-      <value>"""
-Embedded Python Blocks:
-
-Each time this file is saved, GRC will instantiate the first class it finds
-to get ports and parameters of your block. The arguments to __init__  will
-be the parameters. All of them are required to have default values!
-"""
-
-import math
-import numpy as np
-from gnuradio import gr
-
-
-class blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block
-    """Embedded Python Block example - a simple multiply const"""
-
-    def __init__(self, bw_ratio=1.0):  # only default arguments here
-        """arguments to this function show up as parameters in GRC"""
-        gr.sync_block.__init__(
-            self,
-            name='SNR decibels',   # will show up in GRC
-            in_sig=[np.float32,np.float32,np.float32],
-            out_sig=[]
-        )
-        # if an attribute with the same name as a parameter is found,
-        # a callback is registered (properties work, too).
-        self.bw_ratio_bel = math.log10(bw_ratio)
-
-    def work(self, input_items, output_items):
-        """example: multiply with constant"""
-    
-        # Signal voltage in bels
-        signal_bel = math.log10(input_items[1])
-        # Noise voltage in bel
-        noise_bel = math.log10(input_items[2])
-        # SNR is (signal/noise + bandwidth)**2 * scaling constant but in log scale.
-        snr = 10*(2*(signal_bel - noise_bel) + self.bw_ratio_bel)
-        #out = np.array([input_items[0], snr])
-        #print(out)
-        print(snr)
-        print(input_items[0])
-        return 1
-</value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(1152, 272)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>printer</value>
     </param>
   </block>
   <block>
@@ -2555,6 +2544,85 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
       <value></value>
     </param>
   </block>
+  <block>
+    <key>epy_block</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_io_cache</key>
+      <value>('SNR decibels', 'blk', [('bw_ratio', '1.0')], [('0', 'float', 1), ('1', 'float', 1), ('2', 'float', 1)], [], 'Embedded Python Block example - a simple multiply const', [])</value>
+    </param>
+    <param>
+      <key>bw_ratio</key>
+      <value>noise_bw/deviation/2</value>
+    </param>
+    <param>
+      <key>_source_code</key>
+      <value>"""
+Embedded Python Blocks:
+
+Each time this file is saved, GRC will instantiate the first class it finds
+to get ports and parameters of your block. The arguments to __init__  will
+be the parameters. All of them are required to have default values!
+"""
+
+import math
+import numpy as np
+from gnuradio import gr
+
+
+class blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block
+    """Embedded Python Block example - a simple multiply const"""
+
+    def __init__(self, bw_ratio=1.0):  # only default arguments here
+        """arguments to this function show up as parameters in GRC"""
+        gr.sync_block.__init__(
+            self,
+            name='SNR decibels',   # will show up in GRC
+            in_sig=[np.float32,np.float32,np.float32],
+            out_sig=[]
+        )
+        # if an attribute with the same name as a parameter is found,
+        # a callback is registered (properties work, too).
+        self.bw_ratio_bel = math.log10(bw_ratio)
+
+    def work(self, input_items, output_items):
+        """example: multiply with constant"""
+    
+        # Signal voltage in bels
+        signal_bel = math.log10(input_items[1])
+        # Noise voltage in bel
+        noise_bel = math.log10(input_items[2])
+        # SNR is (signal/noise + bandwidth)**2 * scaling constant but in log scale.
+        snr = 10*(2*(signal_bel - noise_bel) + self.bw_ratio_bel)
+        # Just print
+        print(input_items[0][0], snr)
+        return 1
+</value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1152, 272)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>snr</value>
+    </param>
+  </block>
   <connection>
     <source_block_id>analog_noise_source_x_0</source_block_id>
     <sink_block_id>blocks_throttle_0</sink_block_id>
@@ -2587,19 +2655,19 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
   </connection>
   <connection>
     <source_block_id>blocks_stream_to_vector_decimator_0</source_block_id>
-    <sink_block_id>printer</sink_block_id>
+    <sink_block_id>snr</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
   <connection>
     <source_block_id>blocks_stream_to_vector_decimator_0_0</source_block_id>
-    <sink_block_id>printer</sink_block_id>
+    <sink_block_id>snr</sink_block_id>
     <source_key>0</source_key>
     <sink_key>1</sink_key>
   </connection>
   <connection>
     <source_block_id>blocks_stream_to_vector_decimator_0_0_0</source_block_id>
-    <sink_block_id>printer</sink_block_id>
+    <sink_block_id>snr</sink_block_id>
     <source_key>0</source_key>
     <sink_key>2</sink_key>
   </connection>
