@@ -225,61 +225,6 @@
     </param>
   </block>
   <block>
-    <key>analog_noise_source_x</key>
-    <param>
-      <key>amp</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>affinity</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(208, 20)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>analog_noise_source_x_0</value>
-    </param>
-    <param>
-      <key>maxoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>minoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>noise_type</key>
-      <value>analog.GR_UNIFORM</value>
-    </param>
-    <param>
-      <key>type</key>
-      <value>complex</value>
-    </param>
-    <param>
-      <key>seed</key>
-      <value>0</value>
-    </param>
-  </block>
-  <block>
     <key>analog_quadrature_demod_cf</key>
     <param>
       <key>alias</key>
@@ -295,7 +240,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>1</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -342,7 +287,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>1</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -479,7 +424,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -625,61 +570,6 @@
     </param>
     <param>
       <key>vec_rate</key>
-      <value>1</value>
-    </param>
-  </block>
-  <block>
-    <key>blocks_throttle</key>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>affinity</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(216, 100)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>blocks_throttle_0</value>
-    </param>
-    <param>
-      <key>ignoretag</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>maxoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>minoutbuf</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>samples_per_second</key>
-      <value>monitor_rate*upsample_rf</value>
-    </param>
-    <param>
-      <key>type</key>
-      <value>complex</value>
-    </param>
-    <param>
-      <key>vlen</key>
       <value>1</value>
     </param>
   </block>
@@ -903,7 +793,7 @@
     </param>
     <param>
       <key>_io_cache</key>
-      <value>('Embedded Python Block', 'blk', [('example_param', '1.0')], [('0', 'complex', 1)], [('0', 'complex', 1)], 'Embedded Python Block example - a simple multiply const', ['example_param'])</value>
+      <value>('Icinga', 'blk', [('service', "''"), ('warn', '0'), ('crit', '1')], [('0', 'float', 1)], [], 'Embedded Python Block example - a simple multiply const', ['crit', 'service', 'warn'])</value>
     </param>
     <param>
       <key>_source_code</key>
@@ -922,22 +812,36 @@ from gnuradio import gr
 class blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block
     """Embedded Python Block example - a simple multiply const"""
 
-    def __init__(self, example_param=1.0):  # only default arguments here
+    def __init__(self, service="", warn=0, crit=1):  # only default arguments here
         """arguments to this function show up as parameters in GRC"""
         gr.sync_block.__init__(
             self,
-            name='Embedded Python Block',   # will show up in GRC
-            in_sig=[np.complex64],
-            out_sig=[np.complex64]
+            name='Icinga',   # will show up in GRC
+            in_sig=[np.float32],
+            out_sig=[]
         )
         # if an attribute with the same name as a parameter is found,
         # a callback is registered (properties work, too).
-        self.example_param = example_param
+        self.service = service
+        self.warn = warn
+        self.crit = crit
 
     def work(self, input_items, output_items):
-        """example: multiply with constant"""
-        output_items[0][:] = input_items[0] * self.example_param
-        return len(output_items[0])
+        """Test limits based on ranges"""
+        status = 0
+        if self.crit &lt; self.warn:
+            if input_items[0] &lt; self.warn: status = 1
+            if input_items[0] &lt; self.crit: status = 2
+        else:
+            if input_items[0] &gt; self.warn: status = 1
+            if input_items[0] &gt; self.crit: status = 2
+        
+        if status == 0: text = "OK"
+        if status == 1: text = "WARNING"
+        if status == 2: text = "CRITICAL"
+        print("{};{};{}: {}".format(self.service,status,text,input_items[0][0]))
+        
+        return 1
 </value>
     </param>
     <param>
@@ -945,16 +849,16 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
       <value></value>
     </param>
     <param>
-      <key>_enabled</key>
-      <value>0</value>
+      <key>crit</key>
+      <value>20</value>
     </param>
     <param>
-      <key>example_param</key>
-      <value>1.0</value>
+      <key>_enabled</key>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1000, 464)</value>
+      <value>(1080, 436)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -963,6 +867,14 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
     <param>
       <key>id</key>
       <value>gr_icinga</value>
+    </param>
+    <param>
+      <key>service</key>
+      <value>"Vappuradio SNR"</value>
+    </param>
+    <param>
+      <key>warn</key>
+      <value>25</value>
     </param>
   </block>
   <block>
@@ -2552,7 +2464,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
     </param>
     <param>
       <key>_io_cache</key>
-      <value>('SNR decibels', 'blk', [('bw_ratio', '1.0')], [('0', 'float', 1), ('1', 'float', 1), ('2', 'float', 1)], [], 'Embedded Python Block example - a simple multiply const', [])</value>
+      <value>('SNR decibel', 'blk', [('bw_ratio', '1.0')], [('0', 'float', 1), ('1', 'float', 1)], [('0', 'float', 1)], 'Embedded Python Block example - a simple multiply const', [])</value>
     </param>
     <param>
       <key>bw_ratio</key>
@@ -2580,9 +2492,9 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         """arguments to this function show up as parameters in GRC"""
         gr.sync_block.__init__(
             self,
-            name='SNR decibels',   # will show up in GRC
-            in_sig=[np.float32,np.float32,np.float32],
-            out_sig=[]
+            name='SNR decibel',   # will show up in GRC
+            in_sig=[np.float32,np.float32],
+            out_sig=[np.float32]
         )
         # if an attribute with the same name as a parameter is found,
         # a callback is registered (properties work, too).
@@ -2592,14 +2504,14 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         """example: multiply with constant"""
     
         # Signal voltage in bels
-        signal_bel = math.log10(input_items[1])
+        signal_bel = math.log10(input_items[0])
         # Noise voltage in bel
-        noise_bel = math.log10(input_items[2])
+        noise_bel = math.log10(input_items[1])
         # SNR is (signal/noise + bandwidth)**2 * scaling constant but in log scale.
         snr = 10*(2*(signal_bel - noise_bel) + self.bw_ratio_bel)
-        # Just print
-        print(input_items[0][0], snr)
-        return 1
+        # Output in decibels
+        output_items[0][:] = snr
+        return len(output_items[0])
 </value>
     </param>
     <param>
@@ -2612,7 +2524,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1152, 272)</value>
+      <value>(976, 304)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2623,12 +2535,6 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
       <value>snr</value>
     </param>
   </block>
-  <connection>
-    <source_block_id>analog_noise_source_x_0</source_block_id>
-    <sink_block_id>blocks_throttle_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
   <connection>
     <source_block_id>analog_quadrature_demod_cf_0</source_block_id>
     <sink_block_id>blocks_rms_xx_0_0_2</sink_block_id>
@@ -2654,34 +2560,16 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>blocks_stream_to_vector_decimator_0</source_block_id>
-    <sink_block_id>snr</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
     <source_block_id>blocks_stream_to_vector_decimator_0_0</source_block_id>
     <sink_block_id>snr</sink_block_id>
     <source_key>0</source_key>
-    <sink_key>1</sink_key>
+    <sink_key>0</sink_key>
   </connection>
   <connection>
     <source_block_id>blocks_stream_to_vector_decimator_0_0_0</source_block_id>
     <sink_block_id>snr</sink_block_id>
     <source_key>0</source_key>
-    <sink_key>2</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>blocks_throttle_0</source_block_id>
-    <sink_block_id>freq_xlating_fir_filter_xxx_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>blocks_throttle_0</source_block_id>
-    <sink_block_id>freq_xlating_fir_filter_xxx_0_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
+    <sink_key>1</sink_key>
   </connection>
   <connection>
     <source_block_id>freq_xlating_fir_filter_xxx_0</source_block_id>
@@ -2710,6 +2598,12 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
   <connection>
     <source_block_id>rtlsdr_source_0</source_block_id>
     <sink_block_id>freq_xlating_fir_filter_xxx_0_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>snr</source_block_id>
+    <sink_block_id>gr_icinga</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
