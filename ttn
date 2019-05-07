@@ -1,0 +1,4 @@
+#!/bin/sh -eu
+
+curl 'https://console.thethingsnetwork.org/api/gateways/eui-b827ebfffe787a5e' --compressed -H "Authorization: Bearer $bearer" |
+    jq -c '{last: {value: (now - (.status.time / 1e9) | floor), min:0, max: 3600, warn: 600, crit: 3600, unit:"s", fail: "Offline"}, uplink: {value: .status.uplink}, downlink: {value: .status.downlink}}'
