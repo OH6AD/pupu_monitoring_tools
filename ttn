@@ -2,5 +2,12 @@
 
 . "`dirname $0`/perfdata.sh"
 
-curl -fs 'https://console.thethingsnetwork.org/api/gateways/eui-b827ebfffe787a5e' --compressed -H "Authorization: Bearer $bearer" |
-    perfdata '.[0] | {last: {value: (now - (.status.time / 1e9) | floor), min:0, max: 3600, warn: 600, crit: 3600, unit:"s", msg: ["Online","Offline","Offline"]}, uplink: {value: .status.uplink}, downlink: {value: .status.downlink}}'
+# Refreshing token
+if test $(( $(date +%s -d "`jq -r '.expiry' <~/.ttnctl/accountthethingsnetworkorg.token`") - $(date +%s) )) -le 0; then
+    ~/ttnctl-linux-amd64 user >/dev/null
+fi
+
+bearer=`jq -r .access_token <~/.ttnctl/accountthethingsnetworkorg.token`
+
+json="`curl -fSs 'https://console.thethingsnetwork.org/api/gateways/eui-b827ebfffe787a5e' --compressed -H "Authorization: Bearer $bearer"`" || exit 3
+    echo "$json" | perfdata '.[0] | {last: {value: (now - (.status.time / 1e9) | floor), min:0, max: 3600, warn: 600, crit: 3600, unit:"s", msg: ["Online","Offline","Offline"]}, uplink: {value: .status.uplink}, downlink: {value: .status.downlink}}'
