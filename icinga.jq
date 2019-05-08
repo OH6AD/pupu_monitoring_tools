@@ -57,3 +57,6 @@ def fill_icinga_state:
 
 def service_simple(host; service):
     fill_icinga_state_simple | to_service_check_result_simple(host;service);
+
+def format:
+    fill_icinga_state | to_perfdata(map(.state) | max;to_entries | sort_by(-.value.state) | map(.value.msg[.value.state]? // .value.msg // empty) | join(", "));
