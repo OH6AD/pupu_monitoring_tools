@@ -90,8 +90,8 @@ def convert(base):
     value: .battery,
     unit: "%",
     max: 100,
-    crit: 50,
-    warn: 75
+    crit: 20,
+    warn: 45
 } | icinga::service_simple("ahma";"battery")),
 ({
     state: (if .grid then 0 else 1 end),
