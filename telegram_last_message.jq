@@ -4,8 +4,11 @@
 
 import "icinga" as icinga;
 
+# Temporary hack: journalctl encodes as an array if it contains non-UTF8 chars.
+# Just imploding it if there is a message array. Breaks UTF-8 chars.
+.MESSAGE = (.MESSAGE | if type == "array" then implode else . end)
 # Check whih is the last message from Telegram
-if (.MESSAGE | test("Handled Telegram message"))
+| if (.MESSAGE | test("Handled Telegram message"))
 then now-(.__REALTIME_TIMESTAMP | tonumber / 1e6) | floor
 else empty
 end
