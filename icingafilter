@@ -11,7 +11,7 @@ args=${3--Rrs}
 
 own="`dirname $0`"
 
-jq $args -f "$own/$1.jq" --slurpfile conf "$2" -L "$own" | {
+jq $args -f "$own/$1.jq" --slurpfile conf "$2" -L "$own" 2>&1 | {
     read ret
     head -n 1
     exit $ret
