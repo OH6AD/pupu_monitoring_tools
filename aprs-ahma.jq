@@ -24,30 +24,31 @@ def convert(base):
 (
 {raw: .} + (
     .MESSAGE |
-    match(" ([0-9]+) ([0-9.]+)C ([0-9.]+)W ([0-9.]+)V ([0-9]+)%\\|(..)(..)(..)(..)(..)(..)(..)\\|$") |
+    match(" ([0-9]+) ([0-9]+) ([0-9.]+)C ([0-9.]+)W ([0-9.]+)V ([0-9]+)%\\|(..)(..)(..)(..)(..)(..)(..)\\|$") |
     (.captures) |
     {
-	bits: .[11].string | base91dec | (convert(2) + [0,0,0,0,0,0,0,0])[:8] | reverse | map(.==1),
+	bits: .[12].string | base91dec | ([0,0,0,0,0,0,0,0] + convert(2) | reverse)[:8] | map(.==1),
 	data: map(.string)
     }
 ) | {
      ts:            (.raw.__REALTIME_TIMESTAMP | tonumber / 1e6),
-     temp_box:      .data[1] | tonumber,
-     power:         .data[2] | tonumber,
-     voltage:       .data[3] | tonumber,
-     battery:       .data[4] | tonumber,
-     seq:           .data[5] | base91dec,
-     temp_out:      (if .bits[0] then .data[6] | base91dec | eqn else null end), 
-     temp_in:       (if .bits[1] then .data[7] | base91dec | eqn else null end),
-     humi_in:       (if .bits[1] then .data[8] | base91dec else null end),
-     temp_basement: (if .bits[2] then .data[9] | base91dec | eqn else null end),
-     humi_basement: (if .bits[2] then .data[10] | base91dec else null end),
+     temp_box:      .data[2] | tonumber,
+     power:         .data[3] | tonumber,
+     voltage:       .data[4] | tonumber,
+     battery:       .data[5] | tonumber,
+     seq:           .data[6] | base91dec,
+     temp_out:      (if .bits[0] then .data[7] | base91dec | eqn else null end), 
+     temp_in:       (if .bits[1] then .data[8] | base91dec | eqn else null end),
+     humi_in:       (if .bits[1] then .data[9] | base91dec else null end),
+     temp_basement: (if .bits[2] then .data[10] | base91dec | eqn else null end),
+     humi_basement: (if .bits[2] then .data[11] | base91dec else null end),
      in_bat:        (if .bits[1] then .bits[3] else null end),
      basement_bat:  (if .bits[2] then .bits[4] else null end),
      internet:      .bits[5],
      grid:          .bits[6],
      pk:            .bits[7],
-     free_blocks:   .data[0] | tonumber
+     free_blocks:   .data[1] | tonumber,
+     uptime:        .data[0] | tonumber
 } | ([
     (.ts | todateiso8601),
     .temp_box,
@@ -65,19 +66,20 @@ def convert(base):
     .internet,
     .grid,
     .pk,
-    .free_blocks
+    .free_blocks,
+    .uptime
 ] | @csv),
 ({
     state: 0,
     msg: "Connected",
     value: 1
 } | icinga::to_service_check_result_simple("ahma"; "aprs")),
-({
+(if .temp_in == null then empty else {
     value: .temp_in,
     msg: (.temp_in | utils::round(1) + "°C"),
     crit: 5,
     warn: 10
-} | icinga::service_simple("ahma";"temp_in")),
+} | icinga::service_simple("ahma";"temp_in") end),
 ({
     value: (479948800-.free_blocks*4096),
     msg: (.free_blocks*0.004096 + 0.5 | floor | tostring + "MB free"),
@@ -90,8 +92,8 @@ def convert(base):
     value: .battery,
     unit: "%",
     max: 100,
-    crit: 50,
-    warn: 75
+    crit: 20,
+    warn: 45
 } | icinga::service_simple("ahma";"battery")),
 ({
     state: (if .grid then 0 else 1 end),

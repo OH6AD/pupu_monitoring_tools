@@ -4,7 +4,7 @@
 
 cd "`dirname \"$0\"`"
 
-stdbuf -oL journalctl -fu aprs-log -n 0 -o json |
+stdbuf -oL journalctl -fu aprx -n 0 -o json |
     jq --unbuffered -rf "aprs-ahma.jq" |
     while read -r line; do
 	if test "${line#[}" = "$line"; then
