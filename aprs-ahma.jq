@@ -27,7 +27,7 @@ def convert(base):
     match(" ([0-9]+) ([0-9]+) ([0-9.]+)C ([0-9.]+)W ([0-9.]+)V ([0-9]+)%\\|(..)(..)(..)(..)(..)(..)(..)\\|$") |
     (.captures) |
     {
-	bits: .[12].string | base91dec | (convert(2) + [0,0,0,0,0,0,0,0])[:8] | reverse | map(.==1),
+	bits: .[12].string | base91dec | ([0,0,0,0,0,0,0,0] + convert(2) | reverse)[:8] | map(.==1),
 	data: map(.string)
     }
 ) | {
@@ -74,12 +74,12 @@ def convert(base):
     msg: "Connected",
     value: 1
 } | icinga::to_service_check_result_simple("ahma"; "aprs")),
-({
+(if .temp_in == null then empty else {
     value: .temp_in,
     msg: (.temp_in | utils::round(1) + "°C"),
     crit: 5,
     warn: 10
-} | icinga::service_simple("ahma";"temp_in")),
+} | icinga::service_simple("ahma";"temp_in") end),
 ({
     value: (479948800-.free_blocks*4096),
     msg: (.free_blocks*0.004096 + 0.5 | floor | tostring + "MB free"),
