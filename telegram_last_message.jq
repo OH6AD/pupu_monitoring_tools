@@ -8,7 +8,7 @@ import "icinga" as icinga;
 # Just imploding it if there is a message array. Breaks UTF-8 chars.
 .MESSAGE = (.MESSAGE | if type == "array" then implode else . end)
 # Check whih is the last message from Telegram
-| if (.MESSAGE | test("Handled Telegram message"))
+| if (.MESSAGE | test("Handled Telegram message";"i"))
 then now-(.__REALTIME_TIMESTAMP | tonumber / 1e6) | floor
 else empty
 end
