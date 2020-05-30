@@ -1,6 +1,9 @@
 #!/bin/sh -eu
 mtu=`traceroute --mtu "$1" | sed -nr 's/.* F=([0-9]*) .*/\1/p'`
-if test $mtu -lt $2; then
+if test -z "$mtu"; then
+    echo ICMP blocked?
+    exit 2
+elif test $mtu -lt $2; then
     echo MTU is $mtu. Should be $2.
     exit 2
 elif test $mtu -eq $2; then
