@@ -1,0 +1,12 @@
+#!/bin/sh -eu
+mtu=`traceroute --mtu "$1" | sed -nr 's/.* F=([0-9]*) .*/\1/p'`
+if test $mtu -lt $2; then
+    echo MTU is $mtu. Should be $2.
+    exit 2
+elif test $mtu -eq $2; then
+    echo MTU is $mtu
+    exit 0
+else
+    echo MTU is $mtu. Higher than expected $2.
+    exit 1
+fi
