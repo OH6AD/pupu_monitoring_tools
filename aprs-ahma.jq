@@ -2,10 +2,13 @@ import "icinga" as icinga;
 import "utils" as utils;
 
 def base91dec:
-    explode | map(.-33) | (.[0] * 91 + .[1]);
+    explode | reduce .[] as $x (0; .*91+$x-33);
 
 def eqn:
     (./10-100);
+
+def eqncent:
+    (./100);
 
 # Simplified from https://rosettacode.org/wiki/Non-decimal_radices/Convert#jq
 def convert(base):
@@ -24,7 +27,7 @@ def convert(base):
 (
 {raw: .} + (
     .MESSAGE |
-    match(" ([0-9]+) ([0-9]+) ([0-9.]+)C ([0-9.]+)W ([0-9.]+)V ([0-9]+)%\\|(..)(..)(..)(..)(..)(..)(..)\\|$") |
+    match(" (....)(....)(..)(..)(..)(..)\\|(..)(..)(..)(..)(..)(..)(..)\\|") |
     (.captures) |
     {
 	bits: .[12].string | base91dec | ([0,0,0,0,0,0,0,0] + convert(2) | reverse)[:8] | map(.==1),
@@ -32,10 +35,10 @@ def convert(base):
     }
 ) | {
      ts:            (.raw.__REALTIME_TIMESTAMP | tonumber / 1e6),
-     temp_box:      .data[2] | tonumber,
-     power:         .data[3] | tonumber,
-     voltage:       .data[4] | tonumber,
-     battery:       .data[5] | tonumber,
+     temp_box:      .data[2] | base91dec | eqn,
+     voltage:       .data[3] | base91dec | eqncent,
+     current:       .data[4] | base91dec | eqncent,
+     humidity_out:  (if .bits[0] then .data[5] | base91dec else null end),
      seq:           .data[6] | base91dec,
      temp_out:      (if .bits[0] then .data[7] | base91dec | eqn else null end), 
      temp_in:       (if .bits[1] then .data[8] | base91dec | eqn else null end),
@@ -45,16 +48,16 @@ def convert(base):
      in_bat:        (if .bits[1] then .bits[3] else null end),
      basement_bat:  (if .bits[2] then .bits[4] else null end),
      internet:      .bits[5],
-     grid:          .bits[6],
+     out_bat:       .bits[6],
      pk:            .bits[7],
-     free_blocks:   .data[1] | tonumber,
-     uptime:        .data[0] | tonumber
+     free_blocks:   .data[1] | base91dec,
+     uptime:        .data[0] | base91dec,
+     grid:          ((.data[3] | base91dec | eqncent) > 14.5) # Inferred from voltage
 } | ([
     (.ts | todateiso8601),
     .temp_box,
-    .power,
     .voltage,
-    .battery,
+    .humidity_out,
     .seq,
     .temp_out,
     .temp_in,
@@ -67,7 +70,9 @@ def convert(base):
     .grid,
     .pk,
     .free_blocks,
-    .uptime
+    .uptime,
+    .out_bat,
+    .current
 ] | @csv),
 ({
     state: 0,

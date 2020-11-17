@@ -4,16 +4,19 @@
 
 cd "`dirname \"$0\"`"
 
-stdbuf -oL journalctl -fu aprx -n 0 -o json |
+#stdbuf -oL journalctl -u aprx --since '2020-11-12 20:40' -o json |
+stdbuf -oL journalctl -fu aprx -n 0 -o json | {
     jq --unbuffered -rf "aprs-ahma.jq" |
-    while read -r line; do
-	if test "${line#[}" = "$line"; then
-	    # SQL
-	    echo "copy ahma from stdin (format csv);
+	while read -r line; do
+	    if test "${line#[}" = "$line"; then
+		# SQL
+		echo "copy ahma from stdin (format csv);
 $line
 \\."
-	else
-	    # Perfdata
-	    echo "$line" >/var/run/icinga2/cmd/icinga2.cmd
-	fi
-    done | psql hacklabjkl_sensor
+	    else
+		# Perfdata
+		echo "$line" >/var/run/icinga2/cmd/icinga2.cmd
+	    fi
+	done | psql hacklabjkl_sensor
+    ./annotate-grafana
+}
