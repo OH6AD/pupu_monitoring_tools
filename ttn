@@ -7,7 +7,9 @@ if test $(( $(date +%s -d "`jq -r '.expiry' <~/.ttnctl/accountthethingsnetworkor
     ~/ttnctl-linux-amd64 user >/dev/null
 fi
 
-bearer=`jq -r .access_token <~/.ttnctl/accountthethingsnetworkorg.token`
+bearer=`cat ~/.pupu-ttn-bearer`
 
-json="`curl -fSs 'https://console.thethingsnetwork.org/api/gateways/eui-b827ebfffe787a5e' --compressed -H "Authorization: Bearer $bearer"`" || exit 3
-echo "$json" | perfdata '.[0] | {last: {value: (now - (.status.time / 1e9) | floor), min:0, max: 3600, warn: 600, crit: 3600, unit:"s", msg: ["Online","Offline","Offline"]}, uplink: {value: .status.uplink}, downlink: {value: .status.downlink}}'
+export json="`curl -LfSs 'https://eu1.cloud.thethings.network/api/v3/gs/gateways/oh6ad-etteplan/connection/stats' --compressed -H "Authorization: Bearer $bearer"`" || exit 3
+jq -rn 'env.json | fromjson | .last_status.time, .last_uplink_received_at, .last_downlink_received_at' |
+    xargs -IX date +%s -d X |
+    perfdata '(env.json | fromjson) as $json | {last: {value: (now - .[0]) | floor, min:0, max: 3600, warn: 600, crit: 3600, unit:"s", msg: ["Online","Offline","Offline"]}, uplink: {value: (now - .[1]) | floor, min:0, max: 86400, warn: 21600, crit: 86400, unit:"s"}, downlink: {value: (now - .[2]) | floor, min:0, max: 86400, unit:"s"}, uplink_count: {value: $json.uplink_count, unit:"c"}, downlink_count: {value: $json.downlink_count, unit:"c"}}'
